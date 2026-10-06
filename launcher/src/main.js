@@ -132,12 +132,14 @@ function applyAutoStart() {
 }
 
 // ---------- 設定画面 ----------
-function openSettings(buttonId) {
+// buttonId を渡すとそのボタンを、tab を渡すとそのタブ（例: 'help'）を開いた状態で表示する
+function openSettings(buttonId, tab) {
   if (settings) {
     if (settings.isMinimized()) settings.restore();
     settings.show();
     settings.focus();
     if (buttonId) settings.webContents.send('select-button', buttonId);
+    if (tab) settings.webContents.send('show-tab', tab);
     return;
   }
   const isWin = process.platform === 'win32';
@@ -155,7 +157,7 @@ function openSettings(buttonId) {
     autoHideMenuBar: true,
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true }
   });
-  settings.loadFile(path.join(__dirname, 'renderer', 'settings.html'), { query: buttonId ? { select: buttonId } : {} });
+  settings.loadFile(path.join(__dirname, 'renderer', 'settings.html'), { query: Object.assign({}, buttonId && { select: buttonId }, tab && { tab }) });
   settings.once('ready-to-show', () => settings.show());
   settings.on('closed', () => { settings = null; });
 }
@@ -201,6 +203,7 @@ function updateTrayMenu() {
     { label: 'ランチャーを隠す', click: () => launcher && launcher.hide() },
     { type: 'separator' },
     { label: '設定を開く…', click: () => openSettings() },
+    { label: '使い方（説明書）…', click: () => openSettings(null, 'help') },
     { label: '位置をロック', type: 'checkbox', checked: !!config.behavior.locked, click: i => setLocked(i.checked) },
     { type: 'separator' },
     { label: '終了', click: () => app.quit() }
@@ -247,6 +250,7 @@ ipcMain.handle('launcher:context', (_e, id) => {
   }
   tpl.push(
     { label: '設定を開く…', click: () => openSettings() },
+    { label: '使い方（説明書）…', click: () => openSettings(null, 'help') },
     { label: '位置をロック', type: 'checkbox', checked: !!config.behavior.locked, click: i => setLocked(i.checked) },
     { label: '隠す', click: () => launcher.hide() },
     { type: 'separator' },
@@ -352,6 +356,34 @@ function backupCurrent() {
 }
 
 ipcMain.handle('keys:names', () => win32.keyNames);
+
+// ---------- 説明書 ----------
+// インストール版では resources/docs、開発時は launcher/docs に置かれる
+const DOCS = [
+  { id: 'manual', title: '使い方説明書', file: '使い方説明書.md' },
+  { id: 'migration', title: '移行手順書', file: '移行手順書.md' }
+];
+const docsDir = () => (app.isPackaged ? path.join(process.resourcesPath, 'docs') : path.join(__dirname, '..', 'docs'));
+const docPath = id => {
+  const d = DOCS.find(x => x.id === id);
+  return d ? path.join(docsDir(), d.file) : null;
+};
+
+ipcMain.handle('docs:list', () => DOCS.map(({ id, title }) => ({ id, title })));
+ipcMain.handle('docs:read', (_e, id) => {
+  const p = docPath(id);
+  try {
+    return { ok: true, text: fs.readFileSync(p, 'utf8') };
+  } catch (e) {
+    return { ok: false, message: `説明書を読み込めませんでした: ${p}` };
+  }
+});
+// 印刷や保存をしたいときのために、既定のアプリ（メモ帳など）で開く
+ipcMain.handle('docs:openExternal', async (_e, id) => {
+  const p = docPath(id);
+  const err = p ? await require('electron').shell.openPath(p) : '説明書が見つかりません';
+  return { ok: !err, message: err };
+});
 ipcMain.handle('app:quit', () => app.quit());
 
 // ---------- 起動 ----------

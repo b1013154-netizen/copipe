@@ -43,6 +43,15 @@ module.exports = async function ({ app, getLauncher, openSettings, getSettings }
     await js(`window.__dl.showTab('backup')`);
     await wait(400);
     await shot(s, 'settings-backup');
+    await js(`window.__dl.openHelp('manual')`);
+    await wait(600);
+    await shot(s, 'settings-help');
+    await js(`document.querySelectorAll('.doc-toc a')[2].click()`);
+    await wait(900);
+    await shot(s, 'settings-help-scrolled');
+    await js(`window.__dl.openHelp('migration')`);
+    await wait(600);
+    await shot(s, 'settings-help-migration');
     // 見た目を変えてランチャーに反映されるか確認
     await js(`(async () => { const c = (await window.dl.getConfig()).config; Object.assign(c.appearance, { cols: 4, rows: 2, theme: 'sakura', bgType: 'gradient', bgColor: '#fde6ef', bgColor2: '#f6d1e4', labelColor: '#6b2c48', buttonAlpha: .55, accent: '#e2588f', borderAlpha: .8 }); await window.dl.setConfig(c); })()`);
     await wait(1200);

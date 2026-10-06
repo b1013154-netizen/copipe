@@ -84,6 +84,7 @@
     renderAll();
   });
   window.dl.onSelectButton(id => { showTab('buttons'); selectById(id); });
+  window.dl.onShowTab(name => showTab(name));
 
   // ---------- タブ ----------
   function showTab(name) {
@@ -97,6 +98,7 @@
     renderLookTab();
     renderBehaviorTab();
     renderBackupTab();
+    renderHelpTab();
   }
 
   // =====================================================================
@@ -859,7 +861,8 @@
           h('li', null, 'この画面の「設定をインポート」で、保存したファイルを選ぶ'),
           h('li', null, '見つからないアプリが表示されたら、「ボタン」でその場所を選び直す'),
           h('li', null, '「動作」タブで、ホットキーと自動起動を確認する')),
-        h('p', { class: 'hint', style: { marginTop: '10px', marginBottom: 0 } }, 'Web サイトのログイン状態はブラウザ側で管理されるため、新しい PC のブラウザで一度ログインしてください。詳しくは同梱の「移行手順書」を参照してください。')),
+        h('p', { class: 'hint', style: { marginTop: '10px' } }, 'Web サイトのログイン状態はブラウザ側で管理されるため、新しい PC のブラウザで一度ログインしてください。'),
+        h('button', { class: 'btn', onclick: () => openHelp('migration') }, '📖 移行手順書を読む')),
       h('div', { class: 'card' }, h('h2', null, 'その他'),
         h('div', { class: 'inline' },
           h('button', { class: 'btn', onclick: () => window.dl.openBackups() }, '📁 自動バックアップのフォルダを開く'),
@@ -872,6 +875,53 @@
           }) }, '初期状態に戻す…'),
           h('span', { style: { flex: 1 } }),
           h('button', { class: 'btn ghost', onclick: () => window.dl.quit() }, 'DeskLauncher を終了'))));
+  }
+
+
+  // =====================================================================
+  // ヘルプ（同梱の説明書）
+  // =====================================================================
+  let helpDocs = [];
+  let helpDoc = 'manual';
+  const helpCache = {};
+
+  function openHelp(id) {
+    helpDoc = id;
+    renderHelpTab();
+    showTab('help');
+    $('#main').scrollTop = 0;
+  }
+
+  async function renderHelpTab() {
+    const tab = $('#tab-help');
+    if (!helpDocs.length) helpDocs = await window.dl.listDocs();
+    if (!helpCache[helpDoc]) helpCache[helpDoc] = await window.dl.readDoc(helpDoc);
+    const res = helpCache[helpDoc];
+    tab.textContent = '';
+    const body = h('article', { class: 'doc' });
+    const toc = h('nav', { class: 'doc-toc' });
+    if (res.ok) {
+      const { html, headings } = window.DLMarkdown.render(res.text);
+      body.innerHTML = html; // 変換器が HTML をエスケープ済み（同梱ファイルのみを表示）
+      toc.append(h('div', { class: 'doc-toc-title' }, '目次'),
+        ...headings.map(x => h('a', { onclick: () => {
+          const el = document.getElementById(x.id);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } }, x.text)));
+    } else {
+      body.append(h('div', { class: 'note err' }, res.message));
+    }
+    tab.append(
+      h('h1', null, 'ヘルプ'),
+      h('p', { class: 'lead' }, 'DeskLauncher に同梱している説明書です。読みたいものを選んでください。'),
+      h('div', { class: 'pages-bar' },
+        helpDocs.map(d => h('button', { class: `chip${d.id === helpDoc ? ' on' : ''}`, onclick: () => openHelp(d.id) }, d.title)),
+        h('div', { class: 'page-tools' },
+          h('button', { class: 'btn small', onclick: async () => {
+            const r = await window.dl.openDocExternal(helpDoc);
+            if (!r.ok) snack(r.message || '開けませんでした', true);
+          } }, '📄 ファイルで開く（印刷・保存用）'))),
+      h('div', { class: 'doc-layout' }, h('div', { class: 'card doc-card' }, body), toc));
   }
 
   // ---------- モーダル ----------
@@ -912,6 +962,8 @@
 
   if (nav.selId && locate(nav.selId)) selectById(nav.selId);
   renderAll();
+  const startTab = new URLSearchParams(location.search).get('tab');
+  if (startTab) showTab(startTab);
   fillMissingIcons(cfg.pages);
-  window.__dl = { showTab, selectById, openStepPicker, closeModal }; // 動作確認用
+  window.__dl = { showTab, selectById, openStepPicker, closeModal, openHelp }; // 動作確認用
 })();

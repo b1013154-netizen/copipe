@@ -22,8 +22,12 @@ contextBridge.exposeInMainWorld('dl', {
   resetConfig: () => ipcRenderer.invoke('config:reset'),
   openBackups: () => ipcRenderer.invoke('config:openBackups'),
   keyNames: () => ipcRenderer.invoke('keys:names'),
+  listDocs: () => ipcRenderer.invoke('docs:list'),
+  readDoc: id => ipcRenderer.invoke('docs:read', id),
+  openDocExternal: id => ipcRenderer.invoke('docs:openExternal', id),
   quit: () => ipcRenderer.invoke('app:quit'),
   onConfig: on('config-changed'),
   onToast: on('toast'),
-  onSelectButton: on('select-button')
+  onSelectButton: on('select-button'),
+  onShowTab: on('show-tab')
 });
