@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>コピペ帳</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>コピペ帳</h1>
+  <nav>
+    <button type="button" data-tab="detail" class="active">本文</button>
+    <button type="button" data-tab="history">履歴</button>
+    <button type="button" data-tab="settings">設定</button>
+  </nav>
+</header>
+
+<main>
+  <section id="tab-detail">
+    <button type="button" id="paste-in" class="wide">クリップボードから取り込む</button>
+    <div id="empty" class="note">まだ保存されたテキストはありません。ブックマークレットで「コピーして保存」するか、上のボタンで取り込んでください。</div>
+    <div id="detail" hidden>
+      <div class="meta"><span id="meta-date"></span> <a id="meta-src" target="_blank" rel="noopener"></a></div>
+      <textarea id="text" spellcheck="false"></textarea>
+      <div class="row">
+        <button type="button" id="select-all">全文選択</button>
+        <button type="button" id="copy-all" class="primary">全文コピー</button>
+        <button type="button" id="delete-one" class="danger">削除</button>
+      </div>
+      <h2>送る</h2>
+      <p class="note">ボタンを押すと全文をコピーしてからアプリを開きます。本文を受け取れないアプリでは、開いた先で長押し→ペーストしてください。</p>
+      <div id="apps" class="grid"></div>
+    </div>
+    <div id="toast" hidden></div>
+  </section>
+
+  <section id="tab-history" hidden>
+    <ul id="history"></ul>
+    <button type="button" id="clear-all" class="wide danger">履歴をすべて削除</button>
+  </section>
+
+  <section id="tab-settings" hidden>
+    <h2>ブックマークレットの登録</h2>
+    <ol class="steps">
+      <li>下の「コードをコピー」を押します。</li>
+      <li>このページをブックマークに追加します（共有ボタン →「ブックマークを追加」）。名前は「範囲コピー」などにします。</li>
+      <li>ブックマーク一覧でそのブックマークを編集し、アドレス欄を消してコピーしたコードを貼り付けて保存します。</li>
+      <li>使うときは、コピーしたいページでブックマークから「範囲コピー」を選びます。Chromeではアドレスバーに「範囲コピー」と入力して候補から選びます。</li>
+    </ol>
+    <button type="button" id="copy-bm" class="wide primary">コードをコピー</button>
+    <textarea id="bm-code" readonly rows="4"></textarea>
+
+    <h2>送り先アプリ</h2>
+    <p class="note">URLの <code>{text}</code> が本文に置き換わります。<code>{web}</code> は本文がURLならそのページ、それ以外はGoogle検索です。<code>{chrome}</code> は同じ内容をChromeで開きます。</p>
+    <ul id="app-list"></ul>
+    <div class="row">
+      <input id="new-name" placeholder="表示名">
+      <input id="new-url" placeholder="URL（例: mailto:?body={text}）">
+    </div>
+    <div class="row">
+      <button type="button" id="add-app" class="primary">追加</button>
+      <button type="button" id="reset-apps">初期設定に戻す</button>
+    </div>
+
+    <h2>メモアプリ用ショートカット</h2>
+    <p class="note">「メモ」ボタンはショートカットアプリ経由で本文を渡します。ショートカットアプリで新規ショートカットを作り、名前を「メモに追加」、アクションを「メモを作成」（本文に「ショートカットの入力」）にしてください。</p>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
