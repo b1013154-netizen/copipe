@@ -39,3 +39,9 @@ Mac・有料のApple Developer登録・App Storeは不要です。
 - Safariの「履歴とWebサイトデータを消去」で履歴も消えます。
 - ホーム画面に追加したアイコンから開くと、Safariとは別の保存領域になるため、Safariのタブで使ってください。
 - Instagramは本文を受け取るURLがないため、アプリが開いたあとに長押し→ペーストしてください。
+
+---
+
+## 別ツール: DeskLauncher（Windows 用デスクトップランチャー）
+
+ボタン型のショートカットランチャーは [launcher/](launcher/README.md) にあります。
